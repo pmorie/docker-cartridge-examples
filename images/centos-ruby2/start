@@ -1,0 +1,4 @@
+#!/bin/sh
+PATH=/opt/rbenv/bin:$PATH
+eval "$(rbenv init -)"
+$@

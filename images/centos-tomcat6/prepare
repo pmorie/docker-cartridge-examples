@@ -1,0 +1,13 @@
+#!/bin/sh
+
+set -e
+
+tarball=$1
+
+if [ ! -e $tarball ]; then
+  echo "Need to provide a directory containing a WAR as the first argument"
+  exit 1
+fi
+
+echo Building your $tarball
+cp $tarball/* /usr/share/tomcat6/webapps/
