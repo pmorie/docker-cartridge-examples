@@ -11,7 +11,7 @@ rm -f built_cid
 docker build -t smarterclayton/centos-ruby2 .
 
 # Given a source test repository, invoke the cartridge's prepare script on it
-docker run -cidfile built_cid -i -v $(readlink -m ../../test_repos/rails):/tmp/repo:ro smarterclayton/centos-ruby2 /opt/openshift/start /opt/openshift/prepare /tmp/repo
+docker run -cidfile built_cid -i -v $(readlink -m ../../test_repos/rackup):/tmp/repo:ro smarterclayton/centos-ruby2 /opt/openshift/start /opt/openshift/prepare /tmp/repo
 
 # Save the prepared cartridge as a deployment artifact (image representing runtime)
 cid=$(cat built_cid)
