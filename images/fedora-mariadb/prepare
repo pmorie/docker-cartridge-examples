@@ -1,0 +1,16 @@
+#!/bin/sh
+
+set -e
+
+tarball=$1
+
+if [ ! -e $tarball ]; then
+  echo "Need to provide a source repo tarball as the first argument"
+  exit 1
+fi
+
+echo Building your $tarball
+mkdir -p /opt/openshift/cartridge/
+cd /opt/openshift/cartridge/
+cp -Rf $tarball/* .
+bundle install
