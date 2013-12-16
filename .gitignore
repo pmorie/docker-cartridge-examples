@@ -1,3 +1,5 @@
 built_cid
 cache
+images/fedora-mariadb/data
+images/fedora-mariadb/logs
 test_repos/tomcat6/sample.war
