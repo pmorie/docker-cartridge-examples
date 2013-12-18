@@ -5,7 +5,7 @@ set -e
 # An Ubuntu Buildpack cartridge that takes a Ruby source repo and buildpack
 #
 # Note that the default Heroku buildpack timeout is 20s, this may be too short
-# if you are not running in S3.  You can edit
+# if you are not running in EC2 or close to S3.  You can edit
 #
 #  ./cache/packs/70f57bb7858100f3aef58beafcc0dbe3/lib/language_pack/fetcher.rb
 #
