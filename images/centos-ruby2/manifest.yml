@@ -1,0 +1,8 @@
+---
+Name: centos-ruby2
+Version: '0.1'
+Base: openshift/centos-ruby2:latest
+Working-Dir: '/opt/openshift/cartridge'
+Execute: '/opt/openshift/start'
+Execute-Args: 'bundle exec rackup'
+Expose: 9292

@@ -9,7 +9,7 @@ if [ ! -e $tarball ]; then
   exit 1
 fi
 
-echo Building your $tarball
+echo "Building your $tarball"
 mkdir -p /opt/openshift/cartridge/
 cd /opt/openshift/cartridge/
 cp -Rf $tarball/* .

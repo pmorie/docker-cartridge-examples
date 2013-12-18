@@ -17,15 +17,17 @@ module OpenShift
       base_image = parsed_manifest['Base']
       manifest_command = parsed_manifest['Execute']
       manifest_args = parsed_manifest['Execute-Args']
+      manifest_port = parsed_manifest['Expose']
+      manifest_working_dir = parsed_manifest['Working-Dir'] || '/opt/openshift'
 
       FileUtils.rm_f('built_cid')
 
       puts "Prepare: Starting container from #{base_image}"
 
-      `docker run -cidfile built_cid -i -v #{@repo_path}:/tmp/repo:ro #{base_image}`
+      cmd("docker run -cidfile built_cid -i -v #{@repo_path}:/tmp/repo:ro #{base_image} 2>&1")
 
       if $? != 0
-      	puts "Prepare: Error preparing image"
+        puts "Prepare: Error starting cartridge image"
       	exit -1
       end
 
@@ -34,7 +36,7 @@ module OpenShift
       puts "Prepare: Committing changes to #{@login}/#{@app_name}"
       parsed_args = parse_args(manifest_args)
 
-      `docker commit -run='{"WorkingDir": "/opt/openshift", "Cmd": ["#{manifest_command}", #{parsed_args}], "PortSpecs": ["8080"]}' #{container_id} #{@login}/#{@app_name}`
+      cmd("docker commit -run='{\"WorkingDir\": \"#{manifest_working_dir}\", \"Cmd\": [\"#{manifest_command}\", #{parsed_args}], \"PortSpecs\": [\"#{manifest_port}\"]}' #{container_id} #{@login}/#{@app_name}")
 
       if $? != 0
       	puts "Prepare: Error committing image"
@@ -42,6 +44,11 @@ module OpenShift
       end
 
       puts "Prepare: image committed; will run with: \"#{manifest_command} #{manifest_args}\""
+    end
+
+    def cmd(cmd)
+      output = `#{cmd}`
+      puts "=====\n#{output}\n====="
     end
 
     def parse_args(args)

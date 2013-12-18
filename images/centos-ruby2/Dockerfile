@@ -5,5 +5,5 @@ RUN git clone https://github.com/sstephenson/rbenv.git /opt/rbenv && cd /opt/rbe
 ADD ./prepare /opt/openshift/
 ADD ./start /opt/openshift/
 RUN /opt/openshift/start gem install bundler --no-rdoc --no-ri
-WORKDIR /opt/openshift/cartridge/
-CMD /opt/openshift/start bundle exec rackup
+WORKDIR /opt/openshift/cartridge
+CMD /opt/openshift/start /opt/openshift/prepare /tmp/repo
