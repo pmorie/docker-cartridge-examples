@@ -1,0 +1,6 @@
+---
+Name: dock-mock
+Version: '0.1'
+Base: pmorie/fedora-mock:latest
+Execute: 'ruby'
+Execute-Args: './mock_server.rb 0.0.0.0 repo/'
