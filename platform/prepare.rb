@@ -15,16 +15,18 @@ module OpenShift
     def prepare
       parsed_manifest = YAML.safe_load_file(@manifest_path, safe: true)
       base_image = parsed_manifest['Base']
-      manifest_command = parsed_manifest['Execute']
-      manifest_args = parsed_manifest['Execute-Args']
+      repo_mount = parsed_manifest['Repo-Mount'] || '/tmp/repo'
+      prepare_command = parsed_manifest['Prepare']
+      execute_command = parsed_manifest['Execute']
+      execute_args = parsed_manifest['Execute-Args']
       manifest_port = parsed_manifest['Expose']
       manifest_working_dir = parsed_manifest['Working-Dir'] || '/opt/openshift'
 
       FileUtils.rm_f('built_cid')
 
-      puts "Prepare: Starting container from #{base_image}"
+      puts "Prepare: Starting container from #{base_image} with \"#{prepare_command}\""
 
-      cmd("docker run -cidfile built_cid -i -v #{@repo_path}:/tmp/repo:ro #{base_image} 2>&1")
+      cmd("docker run -cidfile built_cid -i -v #{@repo_path}:#{repo_mount}:ro #{base_image} #{prepare_command} 2>&1")
 
       if $? != 0
         puts "Prepare: Error starting cartridge image"
@@ -34,16 +36,16 @@ module OpenShift
       container_id = IO.read('built_cid')
 
       puts "Prepare: Committing changes to #{@login}/#{@app_name}"
-      parsed_args = parse_args(manifest_args)
+      parsed_args = parse_args(execute_args)
 
-      cmd("docker commit -run='{\"WorkingDir\": \"#{manifest_working_dir}\", \"Cmd\": [\"#{manifest_command}\", #{parsed_args}], \"PortSpecs\": [\"#{manifest_port}\"]}' #{container_id} #{@login}/#{@app_name}")
+      cmd("docker commit -run='{\"WorkingDir\": \"#{manifest_working_dir}\", \"Cmd\": [\"#{execute_command}\", #{parsed_args}], \"PortSpecs\": [\"#{manifest_port}\"]}' #{container_id} #{@login}/#{@app_name}")
 
       if $? != 0
       	puts "Prepare: Error committing image"
       	exit -1
       end
 
-      puts "Prepare: image committed; will run with: \"#{manifest_command} #{manifest_args}\""
+      puts "Prepare: image committed; will run with: \"#{execute_command} #{execute_args}\""
     end
 
     def cmd(cmd)

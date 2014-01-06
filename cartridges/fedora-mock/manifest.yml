@@ -2,6 +2,8 @@
 Name: dock-mock
 Version: '0.1'
 Base: openshift/fedora-mock:latest
+Repo-Mount: '/tmp/repo'
+Prepare: 'cp -ad /tmp/repo /opt/openshift/repo'
 Execute: 'ruby'
 Execute-Args: './mock_server.rb 0.0.0.0 repo/'
 Expose: 8080

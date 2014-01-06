@@ -3,6 +3,8 @@ Name: centos-ruby2
 Version: '0.1'
 Base: openshift/centos-ruby2:latest
 Working-Dir: '/opt/openshift/cartridge'
+Repo-Mount: '/tmp/repo'
+Prepare: '/opt/openshift/start /opt/openshift/prepare /tmp/repo'
 Execute: '/opt/openshift/start'
 Execute-Args: 'bundle exec rackup'
 Expose: 9292
