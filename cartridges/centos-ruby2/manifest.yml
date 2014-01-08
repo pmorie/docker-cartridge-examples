@@ -7,4 +7,10 @@ Repo-Mount: '/tmp/repo'
 Prepare: '/opt/openshift/start /opt/openshift/prepare /tmp/repo'
 Execute: '/opt/openshift/start'
 Execute-Args: 'bundle exec rackup'
-Expose: 9292
+Volumes:
+  Prepare:
+    Location: '/tmp/repo'
+Endpoints:
+- Name: EXAMPLE_PORT_1
+  Port: 9292
+  Protocols: [http, ws]

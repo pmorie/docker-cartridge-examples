@@ -15,11 +15,16 @@ module OpenShift
     def prepare
       parsed_manifest = YAML.safe_load_file(@manifest_path, safe: true)
       base_image = parsed_manifest['Base']
-      repo_mount = parsed_manifest['Repo-Mount'] || '/tmp/repo'
+      repo_mount = parsed_manifest['Volumes']['Prepare']['Location'] || '/tmp/repo'
       prepare_command = parsed_manifest['Prepare']
       execute_command = parsed_manifest['Execute']
       execute_args = parsed_manifest['Execute-Args']
-      manifest_port = parsed_manifest['Expose']
+      manifest_endpoints = parsed_manifest['Endpoints']
+      manifest_ports = []
+      manifest_endpoints.each do |endpoint|
+        manifest_ports << endpoint['Port']
+      end
+
       manifest_working_dir = parsed_manifest['Working-Dir'] || '/opt/openshift'
 
       FileUtils.rm_f('built_cid')
@@ -37,8 +42,9 @@ module OpenShift
 
       puts "Prepare: Committing changes to #{@login}/#{@app_name}"
       parsed_args = parse_args(execute_args)
+      parsed_ports = parse_ports(manifest_ports)
 
-      cmd("docker commit -run='{\"WorkingDir\": \"#{manifest_working_dir}\", \"Cmd\": [\"#{execute_command}\", #{parsed_args}], \"PortSpecs\": [\"#{manifest_port}\"]}' #{container_id} #{@login}/#{@app_name}")
+      cmd("docker commit -run='{\"WorkingDir\": \"#{manifest_working_dir}\", \"Cmd\": [\"#{execute_command}\", #{parsed_args}], \"PortSpecs\": [#{parsed_ports}]}' #{container_id} #{@login}/#{@app_name}")
 
       if $? != 0
       	puts "Prepare: Error committing image"
@@ -55,6 +61,10 @@ module OpenShift
 
     def parse_args(args)
       args.split(" ").map { |x| "\"#{x}\"" }.join(",")
+    end
+
+    def parse_ports(ports)
+      ports.map { |x| "\"#{x}\"" }.join(",")
     end
   end
 end
