@@ -17,6 +17,7 @@ module OpenShift
       base_image = parsed_manifest['Base']
       repo_mount = parsed_manifest['Volumes']['Prepare']['Location'] || '/tmp/repo'
       prepare_command = parsed_manifest['Prepare']
+      prepare_env_vars = parsed_manifest['Prepare-Environment']
       execute_command = parsed_manifest['Execute']
       execute_args = parsed_manifest['Execute-Args']
       manifest_endpoints = parsed_manifest['Endpoints']
@@ -25,13 +26,27 @@ module OpenShift
         manifest_ports << endpoint['Port']
       end
 
+      passed_prepare_env = {}
+
+      prepare_env_vars.each do |var|
+        value = ENV[var]
+
+        unless value
+          puts "Required env var #{var} is not set.  Unable to prepare gear image"
+          exit -1
+        end
+
+        passed_prepare_env[var] = value
+      end
+
       manifest_working_dir = parsed_manifest['Working-Dir'] || '/opt/openshift'
+      env_cmd_fragment = prepare_envs(passed_prepare_env)
 
       FileUtils.rm_f('built_cid')
 
       puts "Prepare: Starting container from #{base_image} with \"#{prepare_command}\""
 
-      cmd("docker run -cidfile built_cid -i -v #{@repo_path}:#{repo_mount}:ro #{base_image} #{prepare_command} 2>&1")
+      cmd("docker run -cidfile built_cid -i -v #{@repo_path}:#{repo_mount}:ro #{env_cmd_fragment} #{base_image} #{prepare_command} 2>&1")
 
       if $? != 0
         puts "Prepare: Error starting cartridge image"
@@ -44,7 +59,7 @@ module OpenShift
       parsed_args = parse_args(execute_args)
       parsed_ports = parse_ports(manifest_ports)
 
-      cmd("docker commit -run='{\"WorkingDir\": \"#{manifest_working_dir}\", \"Cmd\": [\"#{execute_command}\", #{parsed_args}], \"PortSpecs\": [#{parsed_ports}]}' #{container_id} #{@login}/#{@app_name}")
+      cmd("docker commit -run='{\"WorkingDir\": \"#{manifest_working_dir}\", \"Cmd\": [\"#{execute_command}\"#{parsed_args}], \"PortSpecs\": [#{parsed_ports}]}' #{container_id} #{@login}/#{@app_name}")
 
       if $? != 0
       	puts "Prepare: Error committing image"
@@ -55,12 +70,21 @@ module OpenShift
     end
 
     def cmd(cmd)
+      puts "Running #{cmd}"
       output = `#{cmd}`
       puts "=====\n#{output}\n=====" unless output.empty?
     end
 
     def parse_args(args)
-      args.split(" ").map { |x| "\"#{x}\"" }.join(",")
+      if args
+        ", " + args.split(" ").map { |x| "\"#{x}\"" }.join(",")
+      else
+        ''
+      end
+    end
+
+    def prepare_envs(env)
+      env.map { |k, v| "-e '#{k}=#{v}'"}.join(" ")
     end
 
     def parse_ports(ports)
