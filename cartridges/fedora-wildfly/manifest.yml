@@ -1,0 +1,17 @@
+---
+Name: wildfly
+Version: '0.1'
+Base: openshift/fedora-wildfly:latest
+Build-Image: 'openshift/fedora-wildfly-build:latest'
+Build: '/opt/openshift/build /tmp/repo'
+Prepare: '/opt/openshift/prepare /tmp/build'
+Execute: '/opt/openshift/launch'
+Volumes:
+  Prepare:
+    Location: '/tmp/repo'
+  Build:
+    Location: '/tmp/build'
+Endpoints:
+- Name: EXAMPLE_PORT_1
+  Port: 8080
+  Protocols: [http, ws]

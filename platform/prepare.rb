@@ -2,6 +2,7 @@
 
 require 'fileutils'
 require 'safe_yaml'
+require 'tmpdir'
 
 module OpenShift
   class Preparer
@@ -15,9 +16,10 @@ module OpenShift
     def prepare
       parsed_manifest = YAML.safe_load_file(@manifest_path, safe: true)
       base_image = parsed_manifest['Base']
+      has_build = parsed_manifest.has_key? 'Build-Image'
       repo_mount = parsed_manifest['Volumes']['Prepare']['Location'] || '/tmp/repo'
       prepare_command = parsed_manifest['Prepare']
-      prepare_env_vars = parsed_manifest['Prepare-Environment']
+      prepare_env_vars = parsed_manifest['Prepare-Environment'] || []
       execute_command = parsed_manifest['Execute']
       execute_args = parsed_manifest['Execute-Args']
       manifest_endpoints = parsed_manifest['Endpoints']
@@ -41,12 +43,26 @@ module OpenShift
 
       manifest_working_dir = parsed_manifest['Working-Dir'] || '/opt/openshift'
       env_cmd_fragment = prepare_envs(passed_prepare_env)
+      build_mount_fragment = ' '
+
+      if has_build
+        build_image = parsed_manifest['Build-Image']
+        build_mount = parsed_manifest['Volumes']['Build']['Location']
+        build_command = parsed_manifest['Build']
+        tmp_build_dir, build_mount_fragment = build_mount_cmd(build_mount)
+        puts "Prepare: Building repo in #{build_image} with #{build_command}"
+      
+        cmd("docker run -i -v #{@repo_path}:#{repo_mount}:ro #{build_mount_fragment}#{env_cmd_fragment} #{build_image} #{build_command} 2>&1")
+
+        if $? != 0
+          puts "Prepare: build failed"
+          exit -1
+        end
+      end
 
       FileUtils.rm_f('built_cid')
-
       puts "Prepare: Starting container from #{base_image} with \"#{prepare_command}\""
-
-      cmd("docker run -cidfile built_cid -i -v #{@repo_path}:#{repo_mount}:ro #{env_cmd_fragment} #{base_image} #{prepare_command} 2>&1")
+      cmd("docker run -cidfile built_cid -i -v #{@repo_path}:#{repo_mount}:ro #{build_mount_fragment}#{env_cmd_fragment} #{base_image} #{prepare_command} 2>&1")
 
       if $? != 0
         puts "Prepare: Error starting cartridge image"
@@ -89,6 +105,11 @@ module OpenShift
 
     def parse_ports(ports)
       ports.map { |x| "\"#{x}\"" }.join(",")
+    end
+
+    def build_mount_cmd(build_mount)
+      tmp_dir = Dir.mktmpdir
+      return tmp_dir, " -v #{tmp_dir}:#{build_mount}:rw"
     end
   end
 end

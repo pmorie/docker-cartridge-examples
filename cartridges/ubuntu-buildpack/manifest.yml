@@ -1,0 +1,17 @@
+---
+Name: ubuntu-buildpack
+Version: '0.1'
+Base: openshift/ubuntu-buildpack:latest
+Working-Dir: '/home/buildpack'
+Repo-Mount: '/tmp/repo'
+Prepare: '/opt/openshift/buildpack /tmp/repo'
+Execute: '/opt/openshift/start'
+Volumes:
+  Prepare:
+    Location: '/tmp/repo'
+Endpoints:
+- Name: EXAMPLE_PORT_1
+  Port: 5000
+  Protocols: [http, ws]
+Prepare-Environment:
+- BUILDPACK_URL
