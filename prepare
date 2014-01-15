@@ -1,0 +1,3 @@
+#!/bin/bash
+
+platform/prepare.rb $1 $2 cartridges/fedora-wildfly/manifest.yml $3

@@ -1,0 +1,4 @@
+#!/bin/bash
+
+docker build -t openshift/fedora-wildfly cartridges/fedora-wildfly
+docker build -t openshift/fedora-wildfly-build cartridges/fedora-wildfly-build
