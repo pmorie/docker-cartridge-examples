@@ -1,0 +1,67 @@
+#!/bin/bash
+#
+# This script takes a directory as input, tries to find a WAR in
+# that directory, and then deploys it to Wildfly.  After deployment
+# succeeds, it shutsdown the server and cleans any temporary data
+# out.  The image is now ready to be run with the deployed WAR.
+#
+
+set -e
+
+#
+# Wait until the deployment succeeds or fails.
+#
+function waitfordeployment() {
+  basefile=$1
+  count=0
+  while [ ${count} -lt 64 ]; do
+      if [ -f "${basefile}.failed" ]; then
+          echo "Unable to deploy your WAR file"
+          exit 1
+      fi
+      if [ -f "${basefile}.deployed" ]; then
+          echo "Deployment succeeded"
+          return 0
+      fi
+      let count=${count}+1
+      sleep 1
+  done
+  echo "Deployment timed out"
+  exit 1
+}
+
+
+# Handle input
+source_dir=$1
+if [ ! -e $source_dir ]; then
+  echo "Need to provide a directory containing source or a WAR file"
+  exit 1
+fi
+
+# Search for a WAR file (or a source dir, eventually)
+war=$(find $source_dir -name *.war | head -1)
+if [ -f "$war" ]; then
+  echo "Handling WAR file $war from $source_dir"
+else
+  echo "No war file found - cannot deploy"
+  exit 1
+fi
+
+war_name=$(basename $war)
+
+# FIXME: Remove me by binding to 0.0.0.0 in Wildfly
+ipaddr=$(ip a s | sed -ne '/127.0.0.1/!{s/^[ \t]*inet[ \t]*\([0-9.]\+\)\/.*$/\1/p}')
+
+echo "Starting JBoss"
+nohup /opt/openshift/launch &
+PID=$!
+
+echo "Deploying WAR"
+cp $war /usr/share/wildfly/standalone/deployments/
+waitfordeployment "/usr/share/wildfly/standalone/deployments/$war_name"
+
+echo "WAR is deployed"
+/usr/share/wildfly/bin/jboss-cli.sh --connect command=:shutdown --controller=$ipaddr
+rm /usr/share/wildfly/standalone/log/server.log
+
+echo "Ready to go"

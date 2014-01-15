@@ -1,0 +1,26 @@
+#!/bin/bash
+#
+# This script takes a directory as input, tries to find a WAR in
+# that directory, and then deploys it to Wildfly.  After deployment
+# succeeds, it shutsdown the server and cleans any temporary data
+# out.  The image is now ready to be run with the deployed WAR.
+#
+
+set -e
+
+# Handle input
+source_dir=$1
+if [ ! -e $source_dir ]; then
+  echo "Need to provide a directory containing source"
+  exit 1
+fi
+
+# Search for a WAR file (or a source dir, eventually)
+echo "Building from source in $source_dir"
+mkdir -p /tmp/build-tmp
+cp -ad $source_dir/* /tmp/build-tmp
+cd /tmp/build-tmp
+ls -l /tmp/repo
+ls -l /tmp/build-tmp
+mvn clean package
+cp -ad /tmp/build-tmp/target/*.war /tmp/build
