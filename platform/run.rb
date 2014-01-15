@@ -23,7 +23,7 @@ module OpenShift
       puts "Running container #{@login}/#{@app_name}:"
       parsed_ports = parse_ports(manifest_ports)
 
-      cmd("docker run -i #{parsed_ports} -t #{@login}/#{@app_name} &")
+      cmd("docker run -i #{parsed_ports} -t #{@login}/#{@app_name}")
     end
 
     def cmd(cmd)
