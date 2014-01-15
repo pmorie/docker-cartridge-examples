@@ -87,8 +87,7 @@ module OpenShift
 
     def cmd(cmd)
       puts "Running #{cmd}"
-      output = `#{cmd}`
-      puts "=====\n#{output}\n=====" unless output.empty?
+      system cmd
     end
 
     def parse_args(args)

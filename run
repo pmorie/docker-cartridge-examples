@@ -1,0 +1,8 @@
+#!/bin/bash
+
+if ! [ $# -eq 3 ]; then
+    echo "Usage: $0 <username> <app-name> <path to manifest>"
+    exit 1
+fi
+
+platform/run.rb $1 $2 $3

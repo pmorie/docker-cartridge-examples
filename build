@@ -1,4 +1,8 @@
 #!/bin/bash
 
-docker build -t openshift/fedora-wildfly cartridges/fedora-wildfly
-docker build -t openshift/fedora-wildfly-build cartridges/fedora-wildfly-build
+if ! [ $# -eq 1 ]; then
+    echo "Usage: $0 <cartridge-name>"
+    exit 1
+fi
+
+docker build -t openshift/$1 cartridges/$1

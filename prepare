@@ -1,3 +1,9 @@
 #!/bin/bash
 
-platform/prepare.rb $1 $2 cartridges/fedora-wildfly/manifest.yml $3
+if ! [ $# -eq 3 ]; then
+    echo "Usage: $0 <username> <app-name> <repo>"
+    echo " repo must be an absolute path"
+    exit 1
+fi
+
+platform/prepare.rb $1 $2-app cartridges/$2/manifest.yml $3
