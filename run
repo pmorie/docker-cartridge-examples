@@ -1,8 +1,8 @@
 #!/bin/bash
 
 if ! [ $# -eq 3 ]; then
-    echo "Usage: $0 <username> <app-name> <path to manifest>"
+    echo "Usage: $0 <username> <app-name> <cartridge-name>"
     exit 1
 fi
 
-platform/run.rb $1 $2 $3
+platform/run.rb $1 $2 cartridge/$3/manifest.yml
