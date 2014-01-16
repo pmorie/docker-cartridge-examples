@@ -13,4 +13,4 @@ echo "Building your $tarball"
 mkdir -p /opt/openshift/cartridge/
 cd /opt/openshift/cartridge/
 cp -Rf $tarball/* .
-bundle install
+bundle install --path /opt/openshift/bundle/
