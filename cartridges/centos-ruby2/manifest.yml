@@ -2,6 +2,7 @@
 Name: centos-ruby2
 Version: '0.1'
 Base: openshift/centos-ruby2:latest
+User: ruby_app
 Working-Dir: '/opt/openshift/cartridge'
 Prepare: '/opt/openshift/start /opt/openshift/prepare /tmp/source'
 Execute: '/opt/openshift/start'
