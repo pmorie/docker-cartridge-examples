@@ -16,6 +16,7 @@ module OpenShift
     def prepare
       parsed_manifest = YAML.safe_load_file(@manifest_path, safe: true)
       base_image = parsed_manifest['Base']
+      user = parsed_manifest['User']
       has_build = parsed_manifest.has_key? 'Build-Image'
       source_mount = parsed_manifest['Volumes']['Prepare']['Location'] || '/tmp/source'
       prepare_command = parsed_manifest['Prepare']
@@ -62,7 +63,7 @@ module OpenShift
 
       FileUtils.rm_f('built_cid')
       puts "Prepare: Starting container from #{base_image} with \"#{prepare_command}\""
-      cmd("docker run -cidfile built_cid -i -v #{@source_path}:#{source_mount}:ro #{build_mount_fragment}#{env_cmd_fragment} #{base_image} #{prepare_command} 2>&1")
+      cmd("docker run -u #{user} -cidfile built_cid -i -v #{@source_path}:#{source_mount}:ro #{build_mount_fragment}#{env_cmd_fragment} #{base_image} #{prepare_command} 2>&1")
 
       if $? != 0
         puts "Prepare: Error starting cartridge image"
@@ -75,7 +76,7 @@ module OpenShift
       parsed_args = parse_args(execute_args)
       parsed_ports = parse_ports(manifest_ports)
 
-      cmd("docker commit -run='{\"WorkingDir\": \"#{manifest_working_dir}\", \"Cmd\": [\"#{execute_command}\"#{parsed_args}], \"PortSpecs\": [#{parsed_ports}]}' #{container_id} #{@login}/#{@app_name}")
+      cmd("docker commit -run='{\"WorkingDir\": \"#{manifest_working_dir}\", \"User\": \"#{user}\", \"Cmd\": [\"#{execute_command}\"#{parsed_args}], \"PortSpecs\": [#{parsed_ports}]}' #{container_id} #{@login}/#{@app_name}")
 
       if $? != 0
       	puts "Prepare: Error committing image"

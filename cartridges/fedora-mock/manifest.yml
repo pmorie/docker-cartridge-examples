@@ -2,6 +2,7 @@
 Name: dock-mock
 Version: '0.1'
 Base: openshift/fedora-mock:latest
+User: openshift_mock
 Prepare: 'cp -ad /tmp/source /opt/openshift/source'
 Execute: 'ruby'
 Execute-Args: '/opt/openshift/mock_server.rb 0.0.0.0 /opt/openshift/source/'

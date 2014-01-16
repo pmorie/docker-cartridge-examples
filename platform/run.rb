@@ -14,6 +14,7 @@ module OpenShift
 
     def run
       parsed_manifest = YAML.safe_load_file(@manifest_path, safe: true)
+      user = parsed_manifest['User']
       manifest_endpoints = parsed_manifest['Endpoints']
       manifest_ports = []
       manifest_endpoints.each do |endpoint|
@@ -23,7 +24,7 @@ module OpenShift
       puts "Running container #{@login}/#{@app_name}:"
       parsed_ports = parse_ports(manifest_ports)
 
-      cmd("docker run -i #{parsed_ports} -t #{@login}/#{@app_name}")
+      cmd("docker run -u #{user} -i #{parsed_ports} -t #{@login}/#{@app_name}")
     end
 
     def cmd(cmd)
