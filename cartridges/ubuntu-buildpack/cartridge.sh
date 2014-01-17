@@ -19,7 +19,7 @@ docker build -rm -t smarterclayton/ubuntu-buildpack .
 
 # Given a source test repository, invoke the cartridge's prepare script on it (buildpack)
 docker run -cidfile built_cid -i \
-  -v $(readlink -m ../../test_repos/rackup):/tmp/repo:ro \
+  -v $(readlink -m ../../test_sources/rackup):/tmp/repo:ro \
   -v $(readlink -m ./cache):/tmp/cache \
   -e 'BUILDPACK_URL=https://github.com/heroku/heroku-buildpack-ruby.git' \
   smarterclayton/ubuntu-buildpack \

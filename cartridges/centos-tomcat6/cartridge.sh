@@ -13,7 +13,7 @@ docker build -t smarterclayton/centos-tomcat6 .
 curl -o ../../test_repos/tomcat6/sample.war http://tomcat.apache.org/tomcat-6.0-doc/appdev/sample/sample.war
 
 # Given a source test repository, invoke the cartridge's prepare script on it
-docker run -cidfile built_cid -i -v $(readlink -m ../../test_repos/tomcat6):/tmp/repo:ro smarterclayton/centos-tomcat6 /opt/openshift/prepare /tmp/repo
+docker run -cidfile built_cid -i -v $(readlink -m ../../test_sources/tomcat6):/tmp/repo:ro smarterclayton/centos-tomcat6 /opt/openshift/prepare /tmp/repo
 
 # Save the prepared cartridge as a deployment artifact (image representing runtime)
 # Note: the cmd is being changed because of the "prepare" step being run above. Possibly

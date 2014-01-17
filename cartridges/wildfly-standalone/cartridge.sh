@@ -14,10 +14,10 @@ rm -f built_cid
 docker build -t smarterclayton/wildfly-standalone-cart .
 
 # Download a sample WAR
-curl -o ../../test_repos/tomcat6/sample.war http://tomcat.apache.org/tomcat-6.0-doc/appdev/sample/sample.war
+curl -o ../../test_sources/tomcat6/sample.war http://tomcat.apache.org/tomcat-6.0-doc/appdev/sample/sample.war
 
 # Given a source test repository, invoke the cartridge's prepare script on it
-docker run -entrypoint '/opt/openshift/prepare' -cidfile built_cid -i -v $(readlink -m ../../test_repos/tomcat6):/tmp/repo:ro smarterclayton/wildfly-standalone-cart /tmp/repo
+docker run -entrypoint '/opt/openshift/prepare' -cidfile built_cid -i -v $(readlink -m ../../test_sources/tomcat6):/tmp/repo:ro smarterclayton/wildfly-standalone-cart /tmp/repo
 
 # Save the prepared cartridge as a deployment artifact (image representing runtime)
 # The CMD and Port are reused from the Dockerfile - the prepare step is changing the value

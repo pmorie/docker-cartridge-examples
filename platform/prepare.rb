@@ -6,11 +6,11 @@ require 'tmpdir'
 
 module OpenShift
   class Preparer
-    def initialize(login, app_name, manifest_path, repo_path)
+    def initialize(login, app_name, manifest_path, source_path)
       @login = login
       @app_name = app_name
       @manifest_path = manifest_path
-      @repo_path = repo_path
+      @source_path = source_path
     end
 
     def prepare
@@ -52,7 +52,7 @@ module OpenShift
         tmp_build_dir, build_mount_fragment = build_mount_cmd(build_mount)
         puts "Prepare: Building repo in #{build_image} with #{build_command}"
       
-        cmd("docker run -i -v #{@repo_path}:#{repo_mount}:ro #{build_mount_fragment}#{env_cmd_fragment} #{build_image} #{build_command} 2>&1")
+        cmd("docker run -i -v #{@source_path}:#{repo_mount}:ro #{build_mount_fragment}#{env_cmd_fragment} #{build_image} #{build_command} 2>&1")
 
         if $? != 0
           puts "Prepare: build failed"
@@ -62,7 +62,7 @@ module OpenShift
 
       FileUtils.rm_f('built_cid')
       puts "Prepare: Starting container from #{base_image} with \"#{prepare_command}\""
-      cmd("docker run -cidfile built_cid -i -v #{@repo_path}:#{repo_mount}:ro #{build_mount_fragment}#{env_cmd_fragment} #{base_image} #{prepare_command} 2>&1")
+      cmd("docker run -cidfile built_cid -i -v #{@source_path}:#{repo_mount}:ro #{build_mount_fragment}#{env_cmd_fragment} #{base_image} #{prepare_command} 2>&1")
 
       if $? != 0
         puts "Prepare: Error starting cartridge image"
@@ -116,12 +116,12 @@ end
 login = ARGV[0]
 app_name = ARGV[1]
 manifest_path = ARGV[2]
-repo_path = ARGV[3]
+source_path = ARGV[3]
 
-unless (login && app_name && manifest_path && repo_path)
-  puts "usage: prepare <login> <app_name> <manifest_path> <repo_path>"
+unless (login && app_name && manifest_path && source_path)
+  puts "usage: prepare <login> <app_name> <manifest_path> <source_path>"
   exit -1
 end
 
-preparer = OpenShift::Preparer.new(login, app_name, manifest_path, repo_path)
+preparer = OpenShift::Preparer.new(login, app_name, manifest_path, source_path)
 preparer.prepare
