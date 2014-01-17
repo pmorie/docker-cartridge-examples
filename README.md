@@ -44,12 +44,12 @@ which are simply a Dockerfile (representing the base cartridge) and a <code>cart
 script that pre-date the POC prepare script.  They implement the following workflow:
 
 1. Build the cartridge into an image
-2. "Prepare" the cartridge by injecting the source repo and invoking a script to build/deploy the 
+2. "Prepare" the cartridge by injecting the source and invoking a script to build/deploy the 
 source
 3. Save that image as the **gear image**, suitable for deployment
 4. Start the image
 
 There are several ruby examples - Ruby 1.8.7 and 2.0.0 on CentOS, and then a Heroku Ruby Buildpack 
-example.  Each of these uses the same source repository and provides the same running Ruby Rack 
+example.  Each of these uses the same source and provides the same running Ruby Rack 
 application - but under the covers they're all doing different things to make that possible, and
 each can offer unique advantages.
