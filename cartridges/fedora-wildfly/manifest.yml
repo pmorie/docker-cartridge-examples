@@ -3,12 +3,12 @@ Name: wildfly
 Version: '0.1'
 Base: openshift/fedora-wildfly:latest
 Build-Image: 'openshift/fedora-wildfly-build:latest'
-Build: '/opt/openshift/build /tmp/repo'
+Build: '/opt/openshift/build /tmp/source'
 Prepare: '/opt/openshift/prepare /tmp/build'
 Execute: '/opt/openshift/launch'
 Volumes:
   Prepare:
-    Location: '/tmp/repo'
+    Location: '/tmp/source'
   Build:
     Location: '/tmp/build'
 Endpoints:

@@ -17,7 +17,7 @@ module OpenShift
       parsed_manifest = YAML.safe_load_file(@manifest_path, safe: true)
       base_image = parsed_manifest['Base']
       has_build = parsed_manifest.has_key? 'Build-Image'
-      repo_mount = parsed_manifest['Volumes']['Prepare']['Location'] || '/tmp/repo'
+      source_mount = parsed_manifest['Volumes']['Prepare']['Location'] || '/tmp/source'
       prepare_command = parsed_manifest['Prepare']
       prepare_env_vars = parsed_manifest['Prepare-Environment'] || []
       execute_command = parsed_manifest['Execute']
@@ -50,9 +50,9 @@ module OpenShift
         build_mount = parsed_manifest['Volumes']['Build']['Location']
         build_command = parsed_manifest['Build']
         tmp_build_dir, build_mount_fragment = build_mount_cmd(build_mount)
-        puts "Prepare: Building repo in #{build_image} with #{build_command}"
+        puts "Prepare: Building source in #{build_image} with #{build_command}"
       
-        cmd("docker run -i -v #{@source_path}:#{repo_mount}:ro #{build_mount_fragment}#{env_cmd_fragment} #{build_image} #{build_command} 2>&1")
+        cmd("docker run -i -v #{@source_path}:#{source_mount}:ro #{build_mount_fragment}#{env_cmd_fragment} #{build_image} #{build_command} 2>&1")
 
         if $? != 0
           puts "Prepare: build failed"
@@ -62,7 +62,7 @@ module OpenShift
 
       FileUtils.rm_f('built_cid')
       puts "Prepare: Starting container from #{base_image} with \"#{prepare_command}\""
-      cmd("docker run -cidfile built_cid -i -v #{@source_path}:#{repo_mount}:ro #{build_mount_fragment}#{env_cmd_fragment} #{base_image} #{prepare_command} 2>&1")
+      cmd("docker run -cidfile built_cid -i -v #{@source_path}:#{source_mount}:ro #{build_mount_fragment}#{env_cmd_fragment} #{base_image} #{prepare_command} 2>&1")
 
       if $? != 0
         puts "Prepare: Error starting cartridge image"
