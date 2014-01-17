@@ -11,6 +11,7 @@ The <code>cartridges</code> directory contains the Dockerfiles and manifests of 
 cartridges:
 
 1. `fedora-wildfly` and its builder `fedora-wildfly-build`
+1. `ubuntu-buildpack`
 1. `fedora-mock`
 1. `centos-ruby2`
 
