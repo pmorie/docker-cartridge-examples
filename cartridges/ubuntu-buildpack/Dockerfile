@@ -1,5 +1,10 @@
 FROM ubuntu
 
+RUN mkdir /opt/openshift
+RUN groupadd -r buildback_app -g 433 && \
+useradd -u 431 -r -g buildpack_app -d /home/buildpack -s /sbin/nologin -c "buildpack cartridge user" buildpack_app
+RUN chown buildpack_app /home/buildpack
+
 RUN apt-get update
 RUN apt-get -y install apt-utils git-core
 
@@ -11,7 +16,7 @@ RUN apt-get -y install curl
 RUN curl http://security.ubuntu.com/ubuntu/pool/universe/o/openssl098/libssl0.9.8_0.9.8o-7ubuntu3.1_amd64.deb -o libssl0.9.8_0.9.8o-7ubuntu3.1_amd64.deb && dpkg -i libssl0.9.8_0.9.8o-7ubuntu3.1_amd64.deb
 
 # Heroku uses Foreman and Procfiles to control processes
-RUN gem install foreman --no-ri --no-rdoc
+RUN GEM_HOME=/opt/openshift gem install foreman --no-ri --no-rdoc
 
 ADD ./buildpack /opt/openshift/
 ADD ./start /opt/openshift/
