@@ -2,15 +2,16 @@
 Name: wildfly
 Version: '0.1'
 Base: openshift/fedora-wildfly:latest
+User: wildfly_app
 Build-Image: 'openshift/fedora-wildfly-build:latest'
-Build: '/opt/openshift/build /tmp/source'
-Prepare: '/opt/openshift/prepare /tmp/build'
+Build: '/opt/openshift/build /tmp/source /opt/openshift/build-product'
+Prepare: '/opt/openshift/prepare /opt/openshift/build-product'
 Execute: '/opt/openshift/launch'
 Volumes:
   Prepare:
     Location: '/tmp/source'
   Build:
-    Location: '/tmp/build'
+    Location: '/opt/openshift/build-product'
 Endpoints:
 - Name: EXAMPLE_PORT_1
   Port: 8080

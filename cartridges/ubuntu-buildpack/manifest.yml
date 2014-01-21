@@ -5,6 +5,7 @@ Base: openshift/ubuntu-buildpack:latest
 Working-Dir: '/home/buildpack'
 Prepare: '/opt/openshift/buildpack /tmp/source'
 Execute: '/opt/openshift/start'
+User: buildpack_app
 Volumes:
   Prepare:
     Location: '/tmp/source'

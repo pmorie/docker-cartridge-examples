@@ -16,6 +16,7 @@ module OpenShift
     def prepare
       parsed_manifest = YAML.safe_load_file(@manifest_path, safe: true)
       base_image = parsed_manifest['Base']
+      user = parsed_manifest['User']
       has_build = parsed_manifest.has_key? 'Build-Image'
       source_mount = parsed_manifest['Volumes']['Prepare']['Location'] || '/tmp/source'
       prepare_command = parsed_manifest['Prepare']
@@ -61,21 +62,35 @@ module OpenShift
       end
 
       FileUtils.rm_f('built_cid')
-      puts "Prepare: Starting container from #{base_image} with \"#{prepare_command}\""
-      cmd("docker run -cidfile built_cid -i -v #{@source_path}:#{source_mount}:ro #{build_mount_fragment}#{env_cmd_fragment} #{base_image} #{prepare_command} 2>&1")
+      puts "Prepare: creating a gear image from #{base_image} with \"#{prepare_command}\""
+
+      if has_build
+        puts "Changing permissions on build mount #{build_mount}"
+        cmd("docker run -u root -cidfile built_cid -i -v #{@source_path}:#{source_mount}:ro #{build_mount_fragment}#{env_cmd_fragment} #{base_image} chown #{user} #{build_mount}")
+
+        container_id = IO.read('built_cid')
+        prepare_tokens = prepare_command.split(' ')
+        prepare_command = prepare_tokens.shift
+        prepare_args = parse_args(prepare_tokens.join(' '))
+
+        puts "Running prepare script"
+        cmd("docker commit -run='{\"User\": \"#{user}\", \"Cmd\": [\"#{prepare_command}\"#{prepare_args}]}' #{container_id}")
+        cmd("docker start -a #{container_id} 2>&1")
+      else
+        cmd("docker run -u #{user} -cidfile built_cid -i -v #{@source_path}:#{source_mount}:ro #{build_mount_fragment}#{env_cmd_fragment} #{base_image} #{prepare_command} 2>&1")
+        container_id = IO.read('built_cid')
+      end
 
       if $? != 0
         puts "Prepare: Error starting cartridge image"
-      	exit -1
+        exit -1
       end
-
-      container_id = IO.read('built_cid')
 
       puts "Prepare: Committing changes to #{@login}/#{@app_name}"
       parsed_args = parse_args(execute_args)
       parsed_ports = parse_ports(manifest_ports)
 
-      cmd("docker commit -run='{\"WorkingDir\": \"#{manifest_working_dir}\", \"Cmd\": [\"#{execute_command}\"#{parsed_args}], \"PortSpecs\": [#{parsed_ports}]}' #{container_id} #{@login}/#{@app_name}")
+      cmd("docker commit -run='{\"WorkingDir\": \"#{manifest_working_dir}\", \"User\": \"#{user}\", \"Cmd\": [\"#{execute_command}\"#{parsed_args}], \"PortSpecs\": [#{parsed_ports}]}' #{container_id} #{@login}/#{@app_name}")
 
       if $? != 0
       	puts "Prepare: Error committing image"
