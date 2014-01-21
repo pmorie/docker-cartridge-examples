@@ -15,12 +15,16 @@ if [ ! -e $source_dir ]; then
   exit 1
 fi
 
+output_dir=$2
+if [ ! -e $output_dir ]; then
+  echo "Need to provide a directory for output"
+  exit 1
+fi
+
 # Search for a WAR file (or a source dir, eventually)
 echo "Building from source in $source_dir"
 mkdir -p /tmp/build-tmp
 cp -ad $source_dir/* /tmp/build-tmp
 cd /tmp/build-tmp
-ls -l /tmp/repo
-ls -l /tmp/build-tmp
 mvn clean package
-cp -ad /tmp/build-tmp/target/*.war /tmp/build
+cp -ad /tmp/build-tmp/target/*.war $output_dir
