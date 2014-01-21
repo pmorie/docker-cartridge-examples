@@ -78,6 +78,7 @@ module OpenShift
         cmd("docker start -a #{container_id} 2>&1")
       else
         cmd("docker run -u #{user} -cidfile built_cid -i -v #{@source_path}:#{source_mount}:ro #{build_mount_fragment}#{env_cmd_fragment} #{base_image} #{prepare_command} 2>&1")
+        container_id = IO.read('built_cid')
       end
 
       if $? != 0
