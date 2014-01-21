@@ -1,0 +1,13 @@
+---
+Name: couchdb
+Version: '0.1'
+Base: openshift/couchdb-standalone
+User: couchdb
+Execute: '/opt/openshift/launch'
+Volumes:
+  Persistent:
+    Location: '/var/lib/couchdb'
+Endpoints:
+- Name: WEB_PORT
+  Port: 5984
+  Protocols: [http]
