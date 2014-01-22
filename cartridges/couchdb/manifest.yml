@@ -1,7 +1,7 @@
 ---
 Name: couchdb
 Version: '0.1'
-Base: openshift/couchdb-standalone
+Base: openshift/couchdb
 User: couchdb
 Execute: '/opt/openshift/launch'
 Volumes:
