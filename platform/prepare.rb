@@ -17,8 +17,10 @@ module OpenShift
       parsed_manifest = YAML.safe_load_file(@manifest_path, safe: true)
       base_image = parsed_manifest['Base']
       user = parsed_manifest['User']
+
       has_build = parsed_manifest.has_key? 'Build-Image'
-      source_mount = parsed_manifest['Volumes']['Prepare']['Location'] || '/tmp/source'
+      has_persistent = parsed_manifest['Volumes'].has_key? 'Persistent'
+      source_mount = parsed_manifest['Volumes'].has_key?('Prepare') ? parsed_manifest['Volumes']['Prepare']['Location'] : '/tmp/source'
       prepare_command = parsed_manifest['Prepare']
       prepare_env_vars = parsed_manifest['Prepare-Environment'] || []
       execute_command = parsed_manifest['Execute']
@@ -72,6 +74,20 @@ module OpenShift
         prepare_tokens = prepare_command.split(' ')
         prepare_command = prepare_tokens.shift
         prepare_args = parse_args(prepare_tokens.join(' '))
+
+        puts "Running prepare script"
+        cmd("docker commit -run='{\"User\": \"#{user}\", \"Cmd\": [\"#{prepare_command}\"#{prepare_args}]}' #{container_id}")
+        cmd("docker start -a #{container_id} 2>&1")
+      elsif has_persistent
+        persistent_mount = parsed_manifest['Volumes']['Persistent']['Location']
+        puts "Changing permissions on persistent mount #{persistent_mount}"
+        cmd("docker run -u root -cidfile built_cid -i -v #{@source_path}:#{persistent_mount}:rw#{env_cmd_fragment} #{base_image} chown #{user}:#{user} #{persistent_mount}")
+
+        container_id = IO.read('built_cid')
+
+        prepare_tokens = prepare_command.split(' ')
+        prepare_command = prepare_tokens.shift
+        prepare_args = (prepare_tokens.size > 0) ? parse_args(prepare_tokens.join(' ')) : ''
 
         puts "Running prepare script"
         cmd("docker commit -run='{\"User\": \"#{user}\", \"Cmd\": [\"#{prepare_command}\"#{prepare_args}]}' #{container_id}")
@@ -134,7 +150,7 @@ manifest_path = ARGV[2]
 source_path = ARGV[3]
 
 unless (login && app_name && manifest_path && source_path)
-  puts "usage: prepare <login> <app_name> <manifest_path> <source_path>"
+  puts "usage: prepare <login> <app_name> <manifest_path> <source_path|persistent_volume_path>"
   exit -1
 end
 
