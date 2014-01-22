@@ -1,0 +1,6 @@
+#!/bin/bash
+
+echo "Prepare"
+cp -ad /var/lib/couchdb/1.2.0 /var/lib/couchdb-data
+ls -l /var/lib/couchdb-data
+touch /var/lib/couchdb/marker

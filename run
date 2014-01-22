@@ -1,8 +1,12 @@
 #!/bin/bash
 
-if ! [ $# -eq 3 ]; then
+if ! [ $# -ge 3 ]; then
     echo "Usage: $0 <username> <app-name> <cartridge-name>"
     exit 1
 fi
 
-platform/run.rb $1 $2 cartridges/$3/manifest.yml
+if ! [ -z "$4" ]; then
+  platform/run.rb $1 $2 cartridges/$3/manifest.yml $4
+else
+  platform/run.rb $1 $2 cartridges/$3/manifest.yml
+fi

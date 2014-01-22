@@ -81,17 +81,9 @@ module OpenShift
       elsif has_persistent
         persistent_mount = parsed_manifest['Volumes']['Persistent']['Location']
         puts "Changing permissions on persistent mount #{persistent_mount}"
-        cmd("docker run -u root -cidfile built_cid -i -v #{@source_path}:#{persistent_mount}:rw#{env_cmd_fragment} #{base_image} chown #{user}:#{user} #{persistent_mount}")
+        cmd("docker run -u #{user} -cidfile built_cid -i -v #{@source_path}:#{persistent_mount}:rw#{env_cmd_fragment} #{base_image} #{prepare_command}")
 
         container_id = IO.read('built_cid')
-
-        prepare_tokens = prepare_command.split(' ')
-        prepare_command = prepare_tokens.shift
-        prepare_args = (prepare_tokens.size > 0) ? parse_args(prepare_tokens.join(' ')) : ''
-
-        puts "Running prepare script"
-        cmd("docker commit -run='{\"User\": \"#{user}\", \"Cmd\": [\"#{prepare_command}\"#{prepare_args}]}' #{container_id}")
-        cmd("docker start -a #{container_id} 2>&1")
       else
         cmd("docker run -u #{user} -cidfile built_cid -i -v #{@source_path}:#{source_mount}:ro #{build_mount_fragment}#{env_cmd_fragment} #{base_image} #{prepare_command} 2>&1")
         container_id = IO.read('built_cid')
